@@ -1,21 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
+{% extends 'layout.html' %}
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% block head %}
     <title>Main</title>
-    <link rel="stylesheet" href="../static/css/style.css"> <!--link to style-->
-</head>
+    {% endblock %}
 
-<body>
-    <form method="get" action="../static/sigma-simensten.zip"> <!--download the game-->
-        <button type="submit">Download</button>
-    </form>
-    <a href="{{ url_for('form') }}"> 
-        <button>Submit score</button> 
+
+    {% block body %}
+    <a class="nuhuhline" href="{{ url_for('form') }}"> 
+        <p class="buttonsapl" id="buttonsbig">Sign up/Sign in</p> 
     </a>
     <!--url to go to form after clicking a button -->
-</body>
-
-</html>
+    {% endblock %}
