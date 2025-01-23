@@ -71,3 +71,12 @@ button {
     font-size: 200%;
     
 }
+
+.inputsize {
+    font-size: 60%;
+}
+
+#spacebetween {
+    display: flex;
+    justify-content: space-between;
+}

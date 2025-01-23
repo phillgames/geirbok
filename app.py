@@ -1,16 +1,36 @@
-from flask import Flask, request, render_template, url_for
-from werkzeug.security import generate_password_hash
-import pymysql
+import re
+from flask import Flask, request, render_template, url_for # type: ignore
+from werkzeug.security import generate_password_hash # type: ignore
+from flask_mail import Mail, Message #type: ignore
+import uuid
+import pymysql # type: ignore
+import socket
 pymysql.install_as_MySQLdb()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'geir.translator.services@gmail.com'
+app.config['MAIL_PASSWORD'] = 'hbwj lnbx yeqh rife'
+
+mail = Mail(app)
 
 db_config = {
     'host': 'localhost',
-    'user': 'godot',
+    'user': 'geir',
     'password': 'password',
-    'database': 'godoths'
+    'database': 'geirbok'
 }
+
+
+hostname = socket.gethostname()
+IPAddr = socket.gethostbyname(hostname)
+
+
+def is_valid_email(email):
+    email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
+    return re.match(email_regex, email)
 
 @app.route('/main')
 def main():
@@ -20,26 +40,65 @@ def main():
 def form():
     return render_template('form.html')
 
+@app.route('/Verify-account')
+def Verify():
+    verify_code = request.args.get('token')
+    conn = pymysql.connect(**db_config)
+    cursor = conn.cursor()
+    query = "SELECT * FROM users WHERE verify = %s"
+    cursor.execute(query, (verify_code))
+    rowcount = cursor.rowcount
+
+    if rowcount == 0:
+        return "Sorry something went wrong!"
+    else:
+        query = "UPDATE users SET verified = %s WHERE verify = %s"
+        cursor.execute(query, (True, verify_code))
+        conn.commit()
+        return render_template('Verify-account.html')
+
+    # If found - set "verified true" and render "verified.html"
+    # UPDATE users SET verified = true WHERE  verify = token"
+    # If not found - render "not_verified.html"
+
+
+    return render_template('Verify-account.html')
+
 # @app.route('/submit')
 # def submit():
 #     return render_template('submit.html')
 
 @app.route("/submit", methods=["POST"])
 def submit():
-    username = request.form["username"]
+    fullname = request.form["fullname"]
     password = request.form["password"]
-    score = request.form["score"]
+    email = request.form["email"]
+    verifcode = uuid.uuid4()
+
+    if not is_valid_email(email):
+        return
+
     hashed_password = generate_password_hash(password)
-    print(hashed_password)
+
+
 
     try:
+        str(uuid.uuid4())
         conn = pymysql.connect(**db_config)
         cursor = conn.cursor()
-        query = "INSERT INTO users (user, pass, score) VALUES (%s, %s, %s)"
-        cursor.execute(query, (username, hashed_password, score))
+        query = "INSERT INTO users (user, email, pass, verify, verified) VALUES (%s, %s, %s, %s, false)"
+        cursor.execute(query, (fullname, email, hashed_password, verifcode))
         conn.commit()
         cursor.close()
         conn.close()
+
+        subject = "Welcome to Geirbok!"
+        body = f"Hi {fullname},\n\nHello! Your account has been created successfully.\n\nClick this link http://{IPAddr}:5000/Verify-account?token={verifcode} \n\nto verify your account\n\n Best regards, \n\nThe Geirbok Team"
+
+
+        msg = Message(subject, sender="your-email@gmail.com", recipients=[email])
+        msg.body = body
+        mail.send(msg)
         return render_template('main.html')
     except Exception as e:
         return f"An error occurred: {e}"
