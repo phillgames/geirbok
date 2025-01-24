@@ -1,0 +1,34 @@
+{% extends 'layout.html' %}
+
+    {% block head %}
+        <title>Order</title>
+    {% endblock %}
+
+    {% block body %}
+    <div class="options">
+        <p>
+            Choose your options below!
+        </p>
+            <a class="nuhuhline" href="">
+                <p class="buttonsapl">
+                    Add to cart
+                </p>
+            </a>
+
+            <div class="bookname">
+
+            </div>
+            <div class="optdesign">
+                <label for="language">Choose a language:</label>
+                <select class="buttonsapl" id="language" name="language">
+                    <option value=""></option>
+                    <option value="english">English</option>
+                    <option value="spanish">Spanish</option>
+                    <option value="french">French</option>
+                    <option value="french">Samisk</option>
+                    <option value="french">Other language</option>
+
+                </select>
+            </div>
+    </div>
+    {% endblock %}

@@ -55,6 +55,10 @@ def is_valid_email(email):
 
 
 
+@app.route('/order')
+def order():
+    return render_template('order.html')
+
 @app.route('/')
 def index():
     return render_template('index.html')
