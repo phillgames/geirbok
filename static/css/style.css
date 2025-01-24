@@ -72,6 +72,12 @@ button {
     
 }
 
+.signin {
+    display: flex;
+    flex-direction: column;
+    font-size: 200%;
+}
+
 .inputsize {
     font-size: 60%;
 }
@@ -79,4 +85,9 @@ button {
 #spacebetween {
     display: flex;
     justify-content: space-between;
+}
+
+.sublog {
+    display: flex;
+    flex-direction: row;
 }

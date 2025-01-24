@@ -1,13 +1,20 @@
 import re
-from flask import Flask, request, render_template, url_for # type: ignore
+from flask import Flask, request, render_template, url_for, redirect, session # type: ignore
 from werkzeug.security import generate_password_hash # type: ignore
 from flask_mail import Mail, Message #type: ignore
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user #type: ignore
 import uuid
 import pymysql # type: ignore
 import socket
 pymysql.install_as_MySQLdb()
 
 app = Flask(__name__, static_folder='static', template_folder='templates')
+
+# secret_key = uuid.uuid4()
+# app.secret_key = secret_key
+# login_manager = LoginManager()
+# login_manager.init_app(app)
+
 app.config['MAIL_SERVER'] = 'smtp.gmail.com'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
@@ -23,14 +30,34 @@ db_config = {
     'database': 'geirbok'
 }
 
+class User(UserMixin):
+    def __init__(self, id):
+        self.id = id
+    
+    @staticmethod
+    def get(user_id):
+        conn =pymysql.connect(**db_config)
+        cursor = conn.cursor()
+        query = "SELECT * FROM users WHERE id = %s"
+        cursor.execute(query, (id))
 
-hostname = socket.gethostname()
-IPAddr = socket.gethostbyname(hostname)
+
+s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+s.connect(('8.8.8.8', 80))
+IPAddr = s.getsockname()[0]
+s.close()
+print(IPAddr)
 
 
 def is_valid_email(email):
     email_regex = r'^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$'
     return re.match(email_regex, email)
+
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/main')
 def main():
@@ -39,6 +66,19 @@ def main():
 @app.route('/form')
 def form():
     return render_template('form.html')
+
+@app.route('/login')
+def login():
+    if request.method == 'POST':
+        if valid_username_password(request.form['fullname'], request.form['password']): # type: ignore
+            session['logged_in'] = True
+
+            return redirect(url_for('protected'))
+        else:
+            error = 'Invalid username or password'
+            return render_template('form.html')
+    else:
+        return render_template('form.html')
 
 @app.route('/Verify-account')
 def Verify():
